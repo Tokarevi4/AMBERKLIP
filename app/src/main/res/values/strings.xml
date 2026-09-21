@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <!-- Application -->
+    <string name="app_name">AMBERKLIP</string>
+
+    <!-- Main screen -->
+    <string name="menu">Menu</string>
+    <string name="settings">Settings</string>
+    <string name="title_klipper_control">Klipper Control</string>
+
+    <string name="offline">Offline</string>
+
+    <!-- Taskbar -->
+    <string name="metrics">Metrics</string>
+    <string name="tasks">Tasks</string>
+
+    <!-- Tasks List -->
+    <string name="tasks_placeholder">Print tasks will appear here.</string>
+    <string name="tasks_connecting_printer">Connecting to printer...</string>
+    <string name="tasks_connection_required">No printer connection</string>
+    <string name="tasks_loading">Loading print jobs...</string>
+    <string name="tasks_empty">No print tasks</string>
+    <string name="tasks_load_error">Could not load print jobs</string>
+    <string name="task_name">Name</string>
+    <string name="task_print_date">Print date</string>
+    <string name="task_modified_date_ascending">Modified date ↑</string>
+    <string name="task_modified_date_descending">Modified date ↓</string>
+    <string name="task_modified_date">Modified date</string>
+    <string name="task_file_size">Size</string>
+
+    <!-- Actions -->
+    <string name="task_action_print">Print</string>
+    <string name="task_action_queue">Add to queue</string>
+    <string name="task_action_preheat">Preheat</string>
+    <string name="print_already_active">A print is already in progress</string>
+    <string name="task_print_failed">Failed to start print</string>
+    <string name="task_added_to_queue">Added to queue</string>
+    <string name="task_queue_failed">Failed to add to queue</string>
+    <string name="preheat_targets_not_set">Heating targets are not set</string>
+    <string name="preheat_started">Preheating started</string>
+    <string name="preheat_failed">Failed to start preheating</string>
+    <string name="task_action_refresh_metadata">Refresh metadata</string>
+    <string name="task_action_rename">Rename</string>
+    <string name="task_action_copy">Copy</string>
+    <string name="task_action_delete">Delete</string>
+    <string name="rename_task">Rename G-code</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_task">Delete G-code</string>
+    <string name="delete">Delete</string>
+    <string name="delete_task_confirmation">Delete "%1$s"?</string>
+    <string name="task_metadata_refreshed">Metadata refreshed</string>
+    <string name="task_metadata_refresh_failed">Failed to refresh metadata</string>
+    <string name="task_renamed">G-code renamed</string>
+    <string name="task_rename_failed">Failed to rename G-code</string>
+    <string name="task_copied">Copied as "%1$s"</string>
+    <string name="task_copy_failed">Failed to copy G-code</string>
+    <string name="task_deleted">G-code deleted</string>
+    <string name="task_delete_failed">Failed to delete G-code</string>
+    <string name="invalid_filename_characters">Invalid characters</string>
+    <string name="ok">OK</string>
+
+    <!-- Printer -->
+    <string name="printers">Printers</string>
+    <string name="add_printer">Add printer</string>
+    <string name="edit_printer">Edit printer</string>
+    <string name="delete_printer">Delete printer</string>
+
+    <string name="printer_name">Printer name</string>
+    <string name="default_printer_name">Printer</string>
+
+    <string name="moonraker_address">Moonraker address</string>
+    <string name="ip_or_local_domain">IP address or local domain</string>
+    <string name="port">Port</string>
+
+    <string name="moonraker_api_key">Moonraker API key</string>
+    <string name="api_key">API key</string>
+
+    <string name="api_key_not_set">API key: not set</string>
+    <string name="api_key_configured">API key: configured</string>
+
+    <string name="connection_in_progress">Connecting...</string>
+
+    <!-- QR -->
+    <string name="scan_api_key_qr">Scan API key QR</string>
+    <string name="scan_qr_prompt">Scan Moonraker API key QR code</string>
+    <string name="qr_api_key_scanned">API key scanned</string>
+    <string name="qr_scan_cancelled">QR scan cancelled</string>
+    <string name="qr_scanner_coming_soon">QR scanner coming soon</string>
+
+    <!-- Delete printer -->
+    <string name="delete_printer_confirmation">Delete printer?</string>
+    <string name="delete_printer_warning">This printer will be removed from the application.</string>
+
+    <!-- Printer status -->
+    <string name="klipper_status">Klipper: %1$s</string>
+    <string name="print_status">Print: %1$s</string>
+    <string name="file_status">File: %1$s</string>
+    <string name="progress_status">Progress: %1$d%%</string>
+    <string name="progress_label">Progress</string>
+
+    <!-- Klipper states -->
+    <string name="klipper_state_ready">Ready</string>
+    <string name="klipper_state_shutdown">Shutdown</string>
+    <string name="klipper_state_error">Error</string>
+    <string name="klipper_state_startup">Startup</string>
+    <string name="klipper_state_unknown">Unknown</string>
+
+    <!-- Print states -->
+    <string name="print_state_standby">Standby</string>
+    <string name="print_state_printing">In process</string>
+    <string name="print_state_paused">Paused</string>
+    <string name="print_state_complete">Complete</string>
+    <string name="print_state_cancelled">Cancelled</string>
+    <string name="print_state_error">Error</string>
+    <string name="print_state_unknown">Unknown</string>
+
+    <string name="print_history">Print history</string>
+    <string name="current_print_metrics">Current print</string>
+
+    <string name="metric_speed">Speed</string>
+    <string name="metric_flow">Flow</string>
+    <string name="metric_filament">Filament</string>
+    <string name="metric_layer">Layer</string>
+    <string name="metric_remaining">Remaining</string>
+    <string name="metric_slicer_remaining">Slicer remaining</string>
+    <string name="metric_elapsed">Print time</string>
+    <string name="metric_finish">Estimated finish</string>
+
+    <!-- Temperatures -->
+    <string name="hotend_temperature_label">Nozzle:</string>
+    <string name="bed_temperature_label">Bed:</string>
+
+    <string name="hotend_temperature">Hotend: %1$s / %2$s C</string>
+    <string name="bed_temperature">Bed: %1$s / %2$s C</string>
+
+    <string name="temperature_invalid_range">Temperature must be between %1$d and %2$d C</string>
+    <string name="temperature_set">Temperature set to %1$d C</string>
+
+    <!-- Print controls -->
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="cancel_print">Cancel print</string>
+    <string name="emergency_stop">EMERGENCY STOP</string>
+
+    <!-- Axis controls -->
+    <string name="control">Control</string>
+    <string name="disable_motors">Disable motor</string>
+
+    <string name="axis_x">X</string>
+    <string name="axis_y">Y</string>
+    <string name="axis_z">Z</string>
+
+    <string name="move_x_minus">Moving X in negative direction</string>
+    <string name="move_x_plus">Moving X in positive direction</string>
+    <string name="move_y_minus">Moving Y in negative direction</string>
+    <string name="move_y_plus">Moving Y in positive direction</string>
+    <string name="move_z_minus">Moving Z down</string>
+    <string name="move_z_plus">Moving Z up</string>
+    <string name="step_value">%1$d mm</string>
+
+    <string name="home_xy">Parking in X/Y</string>
+    <string name="home_z">Parking in Z</string>
+
+    <string name="control_connection_required">Connect printer first</string>
+    <string name="axis_not_homed">Axis not homed now</string>
+    <string name="invalid_coordinate">Incorrect coordinate</string>
+    <string name="coordinate_out_of_range">Coordinate %1$s must be between %2$s and %3$s mm</string>
+    <string name="axis_move_failed">Axis move failed</string>
+    <string name="motors_disable_failed">Motors disable failed</string>
+
+    <!-- Errors -->
+    <string name="connection_error">Connection error</string>
+    <string name="command_failed">Command failed</string>
+    <string name="upload_failed">Upload failed</string>
+    <string name="cannot_open_selected_file">Cannot open selected file</string>
+
+    <!-- Upload -->
+    <string name="upload_gcode">Upload G-code</string>
+    <string name="invalid_gcode_file">Please select a G-code file (.gcode, .gco or .g).</string>
+    <string name="uploaded_file">Uploaded: %1$s</string>
+
+    <!-- Clipboard -->
+    <string name="port_copied">Port copied</string>
+    <string name="port_pasted">Port pasted</string>
+    <string name="port_invalid">Invalid port</string>
+
+    <string name="printer_name_copied">Printer name copied</string>
+    <string name="printer_name_pasted">Printer name pasted</string>
+
+    <string name="moonraker_address_copied">Moonraker address copied</string>
+    <string name="moonraker_address_pasted">Moonraker address pasted</string>
+
+    <string name="api_key_copied">API key copied</string>
+    <string name="api_key_pasted">API key pasted</string>
+
+    <!-- Settings -->
+    <string name="settings_coming_soon">Settings coming soon</string>
+    <string name="back">Back</string>
+
+    <string name="application_language">Application language</string>
+    <string name="language_system">System</string>
+    <string name="language_russian">Russian</string>
+    <string name="language_english">English</string>
+
+    <!-- Empty state -->
+    <string name="no_printer">No printer selected</string>
+    <string name="no_printers_configured">No printers configured</string>
+
+</resources>

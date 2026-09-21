@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="340dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/deleteDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_task"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:includeFontPadding="false"
+        android:paddingBottom="16dp" />
+
+    <TextView
+        android:id="@+id/deleteMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        android:lineSpacingExtra="2dp"
+        android:includeFontPadding="false"
+        android:paddingBottom="20dp" />
+
+    <LinearLayout
+        android:id="@+id/dialogButtons"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/cancelButton"
+            android:layout_width="100dp"
+            android:layout_height="44dp"
+            android:gravity="center"
+            android:text="@string/cancel"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
+
+        <TextView
+            android:id="@+id/actionButton"
+            android:layout_width="100dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="16dp"
+            android:gravity="center"
+            android:text="@string/delete"
+            android:textColor="@color/background"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="@drawable/bg_dialog_danger_button" />
+
+    </LinearLayout>
+
+</LinearLayout>

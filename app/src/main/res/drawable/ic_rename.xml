@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Текстовое поле: высота 7 -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M3,8h13v7H3zM5,10v3h9v-3H5z" />
+
+    <!-- Верхняя перекладина каретки -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14,5h5v2h-5z" />
+
+    <!-- Вертикальная часть каретки -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M16,5h2v14h-2z" />
+
+    <!-- Нижняя перекладина каретки -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14,17h5v2h-5z" />
+
+</vector>

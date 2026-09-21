@@ -14,4 +14,16 @@
         <item name="colorPrimaryVariant">@color/primary_dark</item>
 
     </style>
+
+    <style name="TaskActionsDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog">
+
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorAccent">@color/primary</item>
+
+        <item name="android:windowMinWidthMajor">340dp</item>
+        <item name="android:windowMinWidthMinor">340dp</item>
+
+    </style>
 </resources>
