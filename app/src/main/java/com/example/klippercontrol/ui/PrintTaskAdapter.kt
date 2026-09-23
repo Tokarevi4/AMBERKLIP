@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
 import com.example.klippercontrol.R
 import com.example.klippercontrol.model.PrintTask
 import java.text.SimpleDateFormat
@@ -452,8 +453,7 @@ class PrintTaskAdapter(
             View(parent.context)
 
         divider.setBackgroundColor(
-            parent.context.resources
-                .getColor(R.color.border)
+            ContextCompat.getColor(parent.context, R.color.border)
         )
 
         row.addView(
@@ -555,8 +555,7 @@ class PrintTaskAdapter(
         )
 
         view.setTextColor(
-            parent.context.resources
-                .getColor(R.color.text_primary)
+            ContextCompat.getColor(parent.context, R.color.text_primary)
         )
 
         view.gravity =
@@ -617,10 +616,7 @@ class PrintTaskAdapter(
             )
 
         divider.setBackgroundColor(
-            parent.context.resources
-                .getColor(
-                    R.color.border
-                )
+            ContextCompat.getColor(parent.context, R.color.border)
         )
 
         parent.addView(
@@ -651,10 +647,7 @@ class PrintTaskAdapter(
             textSize
 
         view.setTextColor(
-            parent.context.resources
-                .getColor(
-                    R.color.text_secondary
-                )
+            ContextCompat.getColor(parent.context, R.color.text_secondary)
         )
 
         view.gravity =

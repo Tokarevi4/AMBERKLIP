@@ -1,6 +1,6 @@
 package com.example.klippercontrol
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
@@ -30,9 +30,12 @@ import android.widget.Toast
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.SeekBar
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.klippercontrol.ui.PrintTaskAdapter
 import com.example.klippercontrol.model.HeaterLimits
 import com.example.klippercontrol.model.Printer
@@ -42,7 +45,8 @@ import com.example.klippercontrol.model.PrintMetadata
 import com.example.klippercontrol.model.PrintHistoryEntry
 import com.example.klippercontrol.data.PrinterStorage
 import com.example.klippercontrol.moonraker.MoonrakerClient
-import com.google.zxing.integration.android.IntentIntegrator
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -59,7 +63,7 @@ import java.util.Locale
 import java.util.Date
 import java.util.UUID
 
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
 
     private enum class ConnectionUiState {
         CONNECTING,
@@ -77,7 +81,22 @@ class MainActivity : Activity() {
         READY
     }
 
-    private var selectedPrinter = 0
+    private val printerViewModel by lazy {
+        ViewModelProvider(this)[PrinterViewModel::class.java]
+    }
+
+    private val printers
+        get() = printerViewModel.printers
+
+    private val clients
+        get() = printerViewModel.clients
+
+    private var selectedPrinter: Int
+        get() = printerViewModel.selectedPrinter
+        set(value) {
+            printerViewModel.selectedPrinter = value
+        }
+
     private var selectedTab = TAB_METRICS
 
     private var connectionUiState =
@@ -106,12 +125,6 @@ class MainActivity : Activity() {
                 name != "." &&
                 name != ".."
     }
-
-    private val printers =
-        mutableListOf<Printer>()
-
-    private val clients =
-        mutableMapOf<String, MoonrakerClient>()
 
     private data class PrintMetrics(
         val speed: Double? = null,
@@ -252,6 +265,55 @@ class MainActivity : Activity() {
 
     private var activeApiKeyEdit: EditText? = null
 
+    private val qrScannerLauncher =
+        registerForActivityResult(
+            ScanContract()
+        ) { result ->
+
+            val contents =
+                result.contents
+
+            if (
+                contents != null &&
+                activeApiKeyEdit != null
+            ) {
+
+                activeApiKeyEdit?.setText(
+                    contents
+                )
+
+                Toast.makeText(
+                    this,
+                    getString(
+                        R.string.qr_api_key_scanned
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            } else if (
+                contents == null
+            ) {
+
+                Toast.makeText(
+                    this,
+                    getString(
+                        R.string.qr_scan_cancelled
+                    ),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+    private val filePickerLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.OpenDocument()
+        ) { uri ->
+
+            if (uri != null) {
+                uploadUri(uri)
+            }
+        }
+
     private var refreshJob:
         kotlinx.coroutines.Job? = null
 
@@ -275,29 +337,6 @@ class MainActivity : Activity() {
 
         printerStorage =
             PrinterStorage(this)
-
-        printers.clear()
-
-        printers.addAll(
-            printerStorage.load()
-        )
-
-        if (printers.isEmpty()) {
-
-            printers.add(
-                Printer(
-                    id = UUID.randomUUID().toString(),
-                    name = "Test",
-                    host = "",
-                    port = 7125,
-                    apiKey = ""
-                )
-            )
-
-            printerStorage.save(
-                printers
-            )
-        }
 
         actionBar?.hide()
 
@@ -711,11 +750,7 @@ class MainActivity : Activity() {
                 language
             )
 
-            LocaleHelper.applyToResources(
-                this
-            )
-
-            updateLocalizedUi()
+            recreate()
         }
     }
 
@@ -763,11 +798,7 @@ class MainActivity : Activity() {
                 language
             )
 
-            LocaleHelper.applyToResources(
-                this
-            )
-
-            updateLocalizedUi()
+            recreate()
         }
     }
 
@@ -1259,7 +1290,8 @@ class MainActivity : Activity() {
         button.isEnabled = enabled
 
         button.background =
-            resources.getDrawable(
+            ContextCompat.getDrawable(
+                this@MainActivity,
                 if (enabled) {
                     R.drawable.bg_management_pad_button
                 } else {
@@ -1268,7 +1300,8 @@ class MainActivity : Activity() {
             )
 
         button.setColorFilter(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (enabled) {
                     R.color.background
                 } else {
@@ -1669,7 +1702,8 @@ class MainActivity : Activity() {
             selectedTab == TAB_SETTINGS
 
         metricsIcon.setColorFilter(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (metricsActive) {
                     R.color.primary
                 } else {
@@ -1679,7 +1713,8 @@ class MainActivity : Activity() {
         )
 
         controlIcon.setColorFilter(
-            resources.getColor(
+             ContextCompat.getColor(
+                this@MainActivity,
                 if (controlActive) {
                     R.color.primary
                 } else {
@@ -1689,7 +1724,8 @@ class MainActivity : Activity() {
         )
 
         controlText.setTextColor(
-            resources.getColor(
+             ContextCompat.getColor(
+                this@MainActivity,
                 if (controlActive) {
                     R.color.text_primary
                 } else {
@@ -1699,7 +1735,8 @@ class MainActivity : Activity() {
         )
 
         metricsText.setTextColor(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (metricsActive) {
                     R.color.primary
                 } else {
@@ -1709,7 +1746,8 @@ class MainActivity : Activity() {
         )
 
         tasksIcon.setColorFilter(
-            resources.getColor(
+             ContextCompat.getColor(
+                this@MainActivity,
                 if (tasksActive) {
                     R.color.primary
                 } else {
@@ -1719,7 +1757,8 @@ class MainActivity : Activity() {
         )
 
         tasksText.setTextColor(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (tasksActive) {
                     R.color.primary
                 } else {
@@ -1729,7 +1768,8 @@ class MainActivity : Activity() {
         )
 
         settingsIcon.setColorFilter(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (settingsActive) {
                     R.color.primary
                 } else {
@@ -1739,7 +1779,8 @@ class MainActivity : Activity() {
         )
 
         settingsText.setTextColor(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 if (settingsActive) {
                     R.color.primary
                 } else {
@@ -2222,7 +2263,8 @@ class MainActivity : Activity() {
                 R.id.taskActionDelete
 
         val iconColor =
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 when {
                     !enabled ->
                         R.color.text_muted
@@ -2236,7 +2278,8 @@ class MainActivity : Activity() {
             )
 
         val textColor =
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 when {
                     !enabled ->
                         R.color.text_muted
@@ -3423,7 +3466,8 @@ class MainActivity : Activity() {
                 16f
 
             printerView.setTextColor(
-                resources.getColor(
+                ContextCompat.getColor(
+                    this@MainActivity,
                     if (selected) {
                         R.color.text_primary
                     } else {
@@ -3559,7 +3603,8 @@ class MainActivity : Activity() {
             )
 
             editButton.setColorFilter(
-                resources.getColor(
+                ContextCompat.getColor(
+                    this@MainActivity,
                     if (selected) {
                         R.color.text_primary
                     } else {
@@ -3606,7 +3651,8 @@ class MainActivity : Activity() {
             )
 
             deleteButton.setColorFilter(
-                resources.getColor(
+                ContextCompat.getColor(
+                    this@MainActivity,
                     if (selected) {
                         R.color.text_primary
                     } else {
@@ -4879,7 +4925,8 @@ class MainActivity : Activity() {
             enabled
 
         button.background =
-            resources.getDrawable(
+            ContextCompat.getDrawable(
+                this@MainActivity,
                 if (enabled) {
                     R.drawable.bg_management_pad_button
                 } else {
@@ -5456,7 +5503,8 @@ class MainActivity : Activity() {
             16f
 
         labelView.setTextColor(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 R.color.text_secondary
             )
         )
@@ -5478,7 +5526,8 @@ class MainActivity : Activity() {
             16f
 
         valueView.setTextColor(
-            resources.getColor(
+            ContextCompat.getColor(
+                this@MainActivity,
                 R.color.text_primary
             )
         )
@@ -5618,7 +5667,9 @@ class MainActivity : Activity() {
         view.textSize = size.toFloat()
 
         view.setTextColor(
-            resources.getColor(R.color.text_primary)
+            ContextCompat.getColor(
+                this@MainActivity,
+                R.color.text_primary)
         )
 
         view.setPadding(
@@ -5671,29 +5722,11 @@ class MainActivity : Activity() {
 
     private fun openFilePicker() {
 
-        val intent =
-            Intent(
-                Intent.ACTION_OPEN_DOCUMENT
-            ).apply {
-
-                type = "*/*"
-
-                putExtra(
-                    Intent.EXTRA_MIME_TYPES,
-                    arrayOf(
-                        "text/plain",
-                        "application/octet-stream"
-                    )
-                )
-
-                addCategory(
-                    Intent.CATEGORY_OPENABLE
-                )
-            }
-
-        startActivityForResult(
-            intent,
-            REQUEST_FILE
+        filePickerLauncher.launch(
+            arrayOf(
+                "text/plain",
+                "application/octet-stream"
+            )
         )
     }
 
@@ -6226,7 +6259,8 @@ class MainActivity : Activity() {
                     16f
 
                 filename.setTextColor(
-                    resources.getColor(
+                    ContextCompat.getColor(
+                        this@MainActivity,
                         R.color.text_primary
                     )
                 )
@@ -6278,7 +6312,8 @@ class MainActivity : Activity() {
                     13f
 
                 details.setTextColor(
-                    resources.getColor(
+                    ContextCompat.getColor(
+                        this@MainActivity,
                         R.color.text_secondary
                     )
                 )
@@ -6301,84 +6336,6 @@ class MainActivity : Activity() {
             }
     }
 
-    @Deprecated(
-        "Deprecated in Android API"
-    )
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-
-        super.onActivityResult(
-            requestCode,
-            resultCode,
-            data
-        )
-
-        val scanResult =
-            IntentIntegrator.parseActivityResult(
-                requestCode,
-                resultCode,
-                data
-            )
-
-        if (
-            scanResult != null
-        ) {
-
-            val contents =
-                scanResult.contents
-
-            if (
-                contents != null &&
-                activeApiKeyEdit != null
-            ) {
-
-                activeApiKeyEdit?.setText(
-                    contents
-                )
-
-                Toast.makeText(
-                    this,
-                    getString(
-                        R.string.qr_api_key_scanned
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-
-            } else if (
-                contents == null
-            ) {
-
-                Toast.makeText(
-                    this,
-                    getString(
-                        R.string.qr_scan_cancelled
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            return
-        }
-
-        if (
-            requestCode !=
-            REQUEST_FILE ||
-            resultCode !=
-            RESULT_OK
-        ) {
-            return
-        }
-
-        val uri =
-            data?.data
-                ?: return
-
-        uploadUri(uri)
-    }
-
     private fun startQrScanner(
         editText: EditText
     ) {
@@ -6386,28 +6343,30 @@ class MainActivity : Activity() {
         activeApiKeyEdit =
             editText
 
-        val integrator =
-            IntentIntegrator(this)
+        val options =
+            ScanOptions()
 
-        integrator.setDesiredBarcodeFormats(
-            IntentIntegrator.QR_CODE
+        options.setDesiredBarcodeFormats(
+            ScanOptions.QR_CODE
         )
 
-        integrator.setPrompt(
+        options.setPrompt(
             getString(
                 R.string.scan_qr_prompt
             )
         )
 
-        integrator.setBeepEnabled(
+        options.setBeepEnabled(
             true
         )
 
-        integrator.setOrientationLocked(
+        options.setOrientationLocked(
             true
         )
 
-        integrator.initiateScan()
+        qrScannerLauncher.launch(
+            options
+        )
     }
 
     private fun uploadUri(
@@ -7471,9 +7430,6 @@ class MainActivity : Activity() {
     }
 
     companion object {
-
-        private const val REQUEST_FILE = 1001
-
         const val TAB_METRICS = 0
         const val TAB_CONTROL = 1
         const val TAB_TASKS = 2

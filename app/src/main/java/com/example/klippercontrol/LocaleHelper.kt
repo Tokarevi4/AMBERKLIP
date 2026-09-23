@@ -2,6 +2,7 @@ package com.example.klippercontrol
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import java.util.Locale
 
 object LocaleHelper {
@@ -57,10 +58,29 @@ object LocaleHelper {
                 Locale("en")
 
             else ->
-                context.resources
-                    .configuration
-                    .locale
+                getSystemLocale(context)
         }
+    }
+
+    private fun getSystemLocale(
+        context: Context
+    ): Locale {
+
+        val configuration =
+            context.resources.configuration
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            configuration.locales[0]
+        } else {
+            getLegacyLocale(configuration)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getLegacyLocale(
+        configuration: Configuration
+    ): Locale {
+        return configuration.locale
     }
 
     fun apply(
@@ -77,34 +97,36 @@ object LocaleHelper {
                 context.resources.configuration
             )
 
-        configuration.locale =
+        setConfigurationLocale(
+            configuration,
             locale
+        )
 
         return context.createConfigurationContext(
             configuration
         )
     }
 
-    fun applyToResources(
-        context: Context
+    private fun setConfigurationLocale(
+        configuration: Configuration,
+        locale: Locale
     ) {
 
-        val locale =
-            getSelectedLocale(context)
-
-        Locale.setDefault(locale)
-
-        val configuration =
-            Configuration(
-                context.resources.configuration
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            configuration.setLocale(locale)
+        } else {
+            setLegacyConfigurationLocale(
+                configuration,
+                locale
             )
+        }
+    }
 
-        configuration.locale =
-            locale
-
-        context.resources.updateConfiguration(
-            configuration,
-            context.resources.displayMetrics
-        )
+    @Suppress("DEPRECATION")
+    private fun setLegacyConfigurationLocale(
+        configuration: Configuration,
+        locale: Locale
+    ) {
+        configuration.locale = locale
     }
 }
