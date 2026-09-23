@@ -82,6 +82,8 @@
     <string name="api_key_configured">API key: configured</string>
 
     <string name="connection_in_progress">Connecting...</string>
+    <string name="printer_unavailable">Printer unavailable</string>
+    <string name="klipper_state_disconnected">Disconnected</string>
 
     <!-- QR -->
     <string name="scan_api_key_qr">Scan API key QR</string>

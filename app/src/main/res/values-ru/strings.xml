@@ -82,6 +82,8 @@
     <string name="api_key_configured">API-ключ: настроен</string>
 
     <string name="connection_in_progress">Подключение...</string>
+    <string name="printer_unavailable">Принтер недоступен</string>
+    <string name="klipper_state_disconnected">Отключён</string>
 
     <!-- QR -->
     <string name="scan_api_key_qr">Сканировать API-ключ</string>

@@ -474,6 +474,10 @@ class MainActivity : ComponentActivity() {
                 R.id.temperatureChart
             )
 
+        setPrinterDataViewsVisible(
+            false
+        )    
+
         printInfoCard =
             findViewById(
                 R.id.printInfoCard
@@ -2166,6 +2170,18 @@ class MainActivity : ComponentActivity() {
         val state =
             getPrinterState(printer)
 
+        if (
+            state.connectionBlocked
+        ) {
+
+            controlEmptyText.text =
+                getString(
+                    R.string.printer_unavailable
+                )
+
+            return
+        }
+
         when (state.connectionState) {
 
             ConnectionUiState.CONNECTING -> {
@@ -2320,6 +2336,46 @@ class MainActivity : ComponentActivity() {
             tasksCardContainer.visibility = View.GONE
             tasksContainer.visibility =  View.GONE
             tasksEmptyText.visibility = View.GONE
+            return
+        }
+
+        val printer =
+            printers.getOrNull(
+                selectedPrinter
+            )
+
+        val printerState =
+            printer?.let {
+                getPrinterState(it)
+            }
+
+        if (
+            printerState?.connectionBlocked == true
+        ) {
+
+            tasksCardContainer.visibility =
+                View.GONE
+
+            tasksContainer.visibility =
+                View.GONE
+
+            tasksEmptyText.visibility =
+                View.VISIBLE
+
+            tasksEmptyText.text =
+                getString(
+                    R.string.printer_unavailable
+                )
+
+            printTaskAdapter.submitList(
+                emptyList()
+            )
+
+            printTaskAdapter.setSortState(
+                tasksSortField,
+                tasksSortAscending
+            )
+
             return
         }
 
@@ -3821,6 +3877,10 @@ class MainActivity : ComponentActivity() {
 
     private fun resetTemperatureState() {
 
+        setPrinterDataViewsVisible(
+            false
+        )
+
         taskLoadJob?.cancel()
         taskLoadJob = null
 
@@ -3929,14 +3989,6 @@ class MainActivity : ComponentActivity() {
         val state =
             getPrinterState(printer)
 
-        if (state.connectionBlocked) {
-
-            restorePrinterState()
-            renderSelectedTabState()
-
-            return
-        }
-
         val client =
             getClient(printer)
 
@@ -3964,6 +4016,10 @@ class MainActivity : ComponentActivity() {
 
             lastStatus =
                 null
+
+            setPrinterDataViewsVisible(
+                false
+            )
 
             renderSelectedTabState()
         }
@@ -4008,51 +4064,50 @@ class MainActivity : ComponentActivity() {
                     renderControlState()
                 }
 
-                /*
-                 * История печати не является частью
-                 * проверки подключения принтера.
-                 * Её ошибка не должна переводить
-                 * подключённый принтер в ERROR.
-                 */
-                if (!wasConnected) {
+                if (!state.connectionBlocked) {
 
+                    /*
+                     * История печати не является частью
+                     * проверки подключения принтера.
+                     */
+                    if (!wasConnected) {
+
+                        try {
+
+                            loadPrintHistory()
+
+                        } catch (e: Exception) {
+
+                            android.util.Log.d(
+                                "AMBERKLIP_HISTORY",
+                                "initial history loading failed: " +
+                                        "${e.message}"
+                            )
+                        }
+                    }
+
+                    /*
+                     * Пределы нагревателей нужны только
+                     * при доступном Klipper.
+                     */
                     try {
 
-                        loadPrintHistory()
+                        loadHeaterLimits(
+                            printer
+                        )
 
                     } catch (e: Exception) {
 
+                        setTemperatureInputsEnabled(
+                            false
+                        )
+
                         android.util.Log.d(
-                            "AMBERKLIP_HISTORY",
-                            "initial history loading failed: " +
+                            "AMBERKLIP_TEMP",
+                            "heater limits loading failed: " +
                                     "${e.message}"
                         )
                     }
-                }
-
-                /*
-                 * Пределы нагревателей также являются
-                 * дополнительными данными.
-                 * Ошибка здесь не означает потерю
-                 * соединения с Moonraker.
-                 */
-                try {
-
-                    loadHeaterLimits(
-                        printer
-                    )
-
-                } catch (e: Exception) {
-
-                    setTemperatureInputsEnabled(
-                        false
-                    )
-
-                    android.util.Log.d(
-                        "AMBERKLIP_TEMP",
-                        "heater limits loading failed: " +
-                                "${e.message}"
-                    )
                 }
 
                 if (
@@ -4132,6 +4187,10 @@ class MainActivity : ComponentActivity() {
 
                 updateControlControls(
                     null
+                )
+
+                setPrinterDataViewsVisible(
+                    false
                 )
 
                 android.util.Log.d(
@@ -5153,11 +5212,109 @@ class MainActivity : ComponentActivity() {
         state.connectionState =
             ConnectionUiState.CONNECTED
 
-        state.connected =
-            true
-
         state.status =
             status
+
+        val klipperReady =
+            status.klippyState.equals(
+                "ready",
+                ignoreCase = true
+            )
+
+        state.connectionBlocked =
+            !klipperReady
+
+        state.connected =
+            klipperReady
+
+        connectionUiState =
+            ConnectionUiState.CONNECTED
+
+        printerConnected =
+            klipperReady
+
+        lastStatus =
+            status
+
+        if (!klipperReady) {
+
+            state.currentPrintFilename =
+                null
+
+            state.printMetadata =
+                null
+
+            state.printMetrics =
+                null
+
+            state.recentPrintHistory =
+                emptyList()
+
+            state.recentPrintHistoryLoaded =
+                false
+
+            state.metadataLoadJob?.cancel()
+            state.metadataLoadJob =
+                null
+
+            state.recentHistoryLoadJob?.cancel()
+            state.recentHistoryLoadJob =
+                null
+
+            taskLoadJob?.cancel()
+            taskLoadJob =
+                null
+
+            printTasks.clear()
+
+            taskUiState =
+                TaskUiState.UNAVAILABLE
+
+            hotendLimits =
+                null
+
+            bedLimits =
+                null
+
+            limitsPrinterId =
+                null
+
+            setTemperatureInputsEnabled(
+                false
+            )
+
+            resetPrintInfoCard()
+
+            setPrinterDataViewsVisible(
+                false
+           )
+
+            updateControlControls(
+                null
+            )
+
+            hotendCurrentTemperature.text =
+                "--.-°"
+
+            bedCurrentTemperature.text =
+                "--.-°"
+
+            progressValue.text =
+                "0%"
+
+            progressBar.progress =
+                0
+
+            temperatureChart.clearHistory()
+
+            renderSelectedTabState()
+
+            return
+        }
+
+        setPrinterDataViewsVisible(
+            true
+        )
 
         val filenameChanged =
             state.currentPrintFilename !=
@@ -5406,6 +5563,11 @@ class MainActivity : ComponentActivity() {
                     R.string.klipper_state_ready
                 )
 
+            "disconnected" ->
+                getString(
+                    R.string.klipper_state_disconnected
+                )
+
             "shutdown" ->
                 getString(
                     R.string.klipper_state_shutdown
@@ -5549,6 +5711,68 @@ class MainActivity : ComponentActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+        )
+    }
+
+    private fun setPrinterDataViewsVisible(
+        visible: Boolean
+    ) {
+
+        val visibility =
+            if (visible) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+
+        findViewById<View>(
+            R.id.hotendTemperatureRow
+        ).visibility =
+            visibility
+
+        findViewById<View>(
+            R.id.bedTemperatureRow
+        ).visibility =
+            visibility
+
+        findViewById<View>(
+            R.id.progressRow
+        ).visibility =
+            visibility
+
+        progressBar.visibility =
+            visibility
+
+        temperatureChart.visibility =
+            visibility
+
+        findViewById<View>(
+            R.id.uploadGcodeButton
+        ).visibility =
+            visibility
+    }
+
+    private fun renderPrinterUnavailable(
+        status: PrinterStatus
+    ) {
+
+        content.removeAllViews()
+
+        addText(
+            getString(
+                R.string.printer_unavailable
+            ),
+            18
+        )
+
+        addText(
+            getString(
+                R.string.klipper_status,
+                getLocalizedKlipperState(
+                    status.klippyState
+                )
+            ),
+            16
         )
     }
 
@@ -5784,9 +6008,31 @@ class MainActivity : ComponentActivity() {
 
             ConnectionUiState.CONNECTED -> {
 
-                lastStatus?.let {
-                    renderMetrics(it)
-                } ?: renderConnecting()
+                val printer =
+                    printers.getOrNull(
+                        selectedPrinter
+                    )
+
+                val state =
+                    printer?.let {
+                        getPrinterState(it)
+                    }
+
+                if (
+                    state?.connectionBlocked == true &&
+                    state.status != null
+                ) {
+
+                    renderPrinterUnavailable(
+                        state.status!!
+                    )
+
+                } else {
+
+                    lastStatus?.let {
+                        renderMetrics(it)
+                    } ?: renderConnecting()
+                }
             }
 
             ConnectionUiState.ERROR ->

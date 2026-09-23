@@ -360,7 +360,78 @@ class MoonrakerClient(
         }
     }
 
+    private fun getKlippyState(): String {
+
+        val responseBody =
+            executeWithFallback(
+                operation = "GET_SERVER_INFO",
+                path = "/server/info"
+            ) { builder ->
+                builder.get()
+            }
+
+        val root =
+            Json.parseToJsonElement(
+                responseBody
+            ).jsonObject
+
+        val result =
+            root["result"]
+                ?.jsonObject
+                ?: error(
+                    "Invalid Moonraker server.info response: $responseBody"
+                )
+
+        val connected =
+            result["klippy_connected"]
+                ?.jsonPrimitive
+                ?.content
+                ?.toBoolean()
+                ?: false
+
+        val state =
+            result["klippy_state"]
+                ?.jsonPrimitive
+                ?.content
+                ?: "disconnected"
+
+        val effectiveState =
+            if (connected) {
+                state
+            } else {
+                "disconnected"
+            }
+
+        Log.d(
+            "AMBERKLIP_KLIPPY",
+            "connected=$connected state=$effectiveState"
+        )
+
+        return effectiveState
+    }
+
     fun getStatus(): PrinterStatus {
+
+        val klippyState =
+            getKlippyState()
+
+        if (
+            !klippyState.equals(
+                "ready",
+                ignoreCase = true
+            )
+        ) {
+
+            Log.d(
+                "AMBERKLIP_KLIPPY",
+                "Klipper is not ready: $klippyState"
+            )
+
+            return PrinterStatus(
+                klippyState =
+                    klippyState
+            )
+        }
 
         val json = """
             {
@@ -569,12 +640,7 @@ class MoonrakerClient(
 
         return PrinterStatus(
 
-            klippyState =
-                webhooks
-                    ?.get("state")
-                    ?.jsonPrimitive
-                    ?.content
-                    ?: "unknown",
+            klippyState = klippyState,
 
             printState =
                 print
