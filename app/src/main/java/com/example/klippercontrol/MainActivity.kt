@@ -5717,7 +5717,6 @@ class MainActivity : ComponentActivity() {
     private fun setPrinterDataViewsVisible(
         visible: Boolean
     ) {
-
         val visibility =
             if (visible) {
                 View.VISIBLE
@@ -5727,29 +5726,28 @@ class MainActivity : ComponentActivity() {
 
         findViewById<View>(
             R.id.hotendTemperatureRow
-        ).visibility =
-            visibility
+        ).visibility = visibility
 
         findViewById<View>(
             R.id.bedTemperatureRow
-        ).visibility =
-            visibility
+        ).visibility = visibility
 
         findViewById<View>(
             R.id.progressRow
-        ).visibility =
-            visibility
+        ).visibility = visibility
 
-        progressBar.visibility =
-            visibility
-
-        temperatureChart.visibility =
-            visibility
+        progressBar.visibility = visibility
+        temperatureChart.visibility = visibility
 
         findViewById<View>(
             R.id.uploadGcodeButton
-        ).visibility =
-            visibility
+        ).visibility = visibility
+
+        if (!visible) {
+            findViewById<View>(
+                R.id.printInfoCard
+            ).visibility = View.GONE
+        }
     }
 
     private fun renderPrinterUnavailable(
