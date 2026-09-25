@@ -186,6 +186,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var hotendTargetInput: EditText
     private lateinit var bedTargetInput: EditText
+    private var temperatureInputsAvailable = false
 
     private lateinit var progressValue: TextView
     private lateinit var progressBar: ProgressBar
@@ -253,6 +254,9 @@ class MainActivity : ComponentActivity() {
     private var lastSubmittedBedTarget: Int? = null
 
     private var keyboardVisible = false
+    private var updatingTemperatureInput = false
+    private var hotendTargetEditing = false
+    private var bedTargetEditing = false
 
     private var hotendSubmitRunnable: Runnable? = null
     private var bedSubmitRunnable: Runnable? = null
@@ -458,6 +462,8 @@ class MainActivity : ComponentActivity() {
             findViewById(
                 R.id.bedTargetInput
             )
+
+        setTemperatureInputsEnabled(false)    
 
         progressValue =
             findViewById(
@@ -811,13 +817,13 @@ class MainActivity : ComponentActivity() {
         configureTemperatureInput(
             hotendTargetInput
         ) {
-            scheduleHotendTemperatureSubmit()
+            submitHotendTemperature()
         }
 
         configureTemperatureInput(
             bedTargetInput
         ) {
-            scheduleBedTemperatureSubmit()
+            submitBedTemperature()
         }
     }
 
@@ -833,33 +839,138 @@ class MainActivity : ComponentActivity() {
         input.imeOptions =
             EditorInfo.IME_ACTION_DONE
 
+        input.setSelectAllOnFocus(false)
+
+        input.setOnClickListener {
+
+            enterTemperatureEditMode(
+                input
+            )
+        }
+
         input.setOnEditorActionListener {
                 _,
                 actionId,
-                _ ->
+                event ->
 
-            if (
+            val enterPressed =
                 actionId ==
-                EditorInfo.IME_ACTION_DONE
-            ) {
-                input.clearFocus()
+                    EditorInfo.IME_ACTION_DONE ||
+                (
+                    event?.keyCode ==
+                        android.view.KeyEvent.KEYCODE_ENTER &&
+                    event.action ==
+                        android.view.KeyEvent.ACTION_DOWN
+                )
+
+            if (enterPressed) {
 
                 onDone()
 
                 true
+
             } else {
+
                 false
             }
         }
 
-        input.setOnFocusChangeListener {
-                _,
-                hasFocus ->
+        makeTemperatureInputReadOnly(
+            input
+        )
+    }
 
-            if (hasFocus) {
-                input.selectAll()
-            }
+    private fun enterTemperatureEditMode(
+        input: EditText
+    ) {
+
+        if (!temperatureInputsAvailable) {
+            return
         }
+
+        if (input === hotendTargetInput) {
+
+            hotendSubmitRunnable?.let {
+                keyboardHandler.removeCallbacks(it)
+            }
+
+            hotendSubmitRunnable = null
+
+            hotendTargetEditing = true
+
+        } else if (input === bedTargetInput) {
+
+            bedSubmitRunnable?.let {
+                keyboardHandler.removeCallbacks(it)
+            }
+
+            bedSubmitRunnable = null
+
+            bedTargetEditing = true
+        }
+
+        input.isFocusable = true
+        input.isFocusableInTouchMode = true
+        input.isCursorVisible = true
+
+        input.requestFocus()
+
+        input.setSelection(
+            input.text.length
+        )
+
+        input.post {
+
+            val imm =
+                getSystemService(
+                    android.content.Context.INPUT_METHOD_SERVICE
+                ) as android.view.inputmethod.InputMethodManager
+
+            imm.showSoftInput(
+                input,
+                android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT
+            )
+        }
+    }
+
+    private fun finishTemperatureEditMode(
+        input: EditText
+    ) {
+
+        if (input === hotendTargetInput) {
+
+            hotendTargetEditing = false
+
+        } else if (input === bedTargetInput) {
+
+            bedTargetEditing = false
+        }
+
+        val imm =
+            getSystemService(
+                android.content.Context.INPUT_METHOD_SERVICE
+            ) as android.view.inputmethod.InputMethodManager
+
+        imm.hideSoftInputFromWindow(
+            input.windowToken,
+            0
+        )
+
+        makeTemperatureInputReadOnly(
+            input
+        )
+    }
+
+    private fun makeTemperatureInputReadOnly(
+        input: EditText
+    ) {
+
+        input.clearFocus()
+
+        input.isFocusable = true
+        input.isFocusableInTouchMode = false
+
+        input.isCursorVisible = false
     }
 
     private fun configureControlInputs() {
@@ -1054,32 +1165,59 @@ class MainActivity : ComponentActivity() {
 
     private fun onKeyboardHidden() {
 
-        val hotendText =
-            hotendTargetInput.text
-                .toString()
-                .trim()
+        if (hotendTargetEditing) {
 
-        if (
-            hotendTargetInput.hasFocus() &&
-            hotendText.isNotEmpty()
-        ) {
-            scheduleHotendTemperatureSubmit()
+            val text =
+                hotendTargetInput.text
+                    .toString()
+                    .trim()
+
+            if (text.isNotEmpty()) {
+
+                scheduleHotendTemperatureSubmit()
+
+                makeTemperatureInputReadOnly(
+                    hotendTargetInput
+                )
+
+            } else {
+
+                hotendTargetEditing = false
+
+                restoreHotendTarget()
+
+                makeTemperatureInputReadOnly(
+                    hotendTargetInput
+                )
+            }
         }
 
-        val bedText =
-            bedTargetInput.text
-                .toString()
-                .trim()
+        if (bedTargetEditing) {
 
-        if (
-            bedTargetInput.hasFocus() &&
-            bedText.isNotEmpty()
-        ) {
-            scheduleBedTemperatureSubmit()
+            val text =
+                bedTargetInput.text
+                    .toString()
+                    .trim()
+
+            if (text.isNotEmpty()) {
+
+                scheduleBedTemperatureSubmit()
+
+                makeTemperatureInputReadOnly(
+                    bedTargetInput
+                )
+
+            } else {
+
+                bedTargetEditing = false
+
+                restoreBedTarget()
+
+                makeTemperatureInputReadOnly(
+                    bedTargetInput
+                )
+            }
         }
-
-        hotendTargetInput.clearFocus()
-        bedTargetInput.clearFocus()
     }
 
     private fun scheduleHotendTemperatureSubmit() {
@@ -1631,8 +1769,8 @@ class MainActivity : ComponentActivity() {
             target.toString()
         )
 
-        hotendTargetInput.setSelection(
-            hotendTargetInput.text.length
+        android.text.Selection.removeSelection(
+            hotendTargetInput.text
         )
     }
 
@@ -1646,8 +1784,8 @@ class MainActivity : ComponentActivity() {
             target.toString()
         )
 
-        bedTargetInput.setSelection(
-            bedTargetInput.text.length
+        android.text.Selection.removeSelection(
+            bedTargetInput.text
         )
     }
 
@@ -3579,11 +3717,16 @@ class MainActivity : ComponentActivity() {
                         temperatureChart.saveState()
                 }
 
-                resetPrintInfoCard()
+                /*
+                 * Полностью очищаем отображаемое состояние
+                 * старого принтера и глобальные target-команды.
+                 */
+                resetTemperatureState()
 
+                /*
+                 * Теперь выбираем новый принтер.
+                 */
                 selectedPrinter = index
-
-                restorePrinterState()
 
                 val newPrinter =
                     printers[selectedPrinter]
@@ -3594,8 +3737,10 @@ class MainActivity : ComponentActivity() {
                     )
 
                 /*
-                 * Старый runtime-status больше не должен
-                 * отображаться для нового принтера.
+                 * Новый принтер должен начать с чистого
+                 * runtime-состояния. Фактический target
+                 * будет получен только из нового статуса
+                 * Moonraker/Klipper.
                  */
                 newState.status = null
                 newState.connected = false
@@ -3816,29 +3961,24 @@ class MainActivity : ComponentActivity() {
             state.temperatureChartState
         )
 
-        if (state.status != null) {
-            updateTemperatureControls(state.status!!)
-        } else {
-            hotendCurrentTemperature.text = "--.-°"
-            bedCurrentTemperature.text = "--.-°"
-            progressValue.text = "0%"
-            progressBar.progress = 0
-            hotendTargetInput.setText(state.lastHotendTarget?.toString() ?: "")
-            bedTargetInput.setText(state.lastBedTarget?.toString() ?: "")
+        updatingTemperatureInput = true
+
+        try {
+            if (state.status != null) {
+                updateTemperatureControls(
+                    state.status!!
+                )
+            } else {
+                hotendCurrentTemperature.text = "--.-°"
+                bedCurrentTemperature.text = "--.-°"
+                progressValue.text = "0%"
+                progressBar.progress = 0
+            }
+        } finally {
+            updatingTemperatureInput = false
         }
 
-        if (
-            connectionUiState ==
-            ConnectionUiState.CONNECTED
-        ) {
-            setTemperatureInputsEnabled(
-                true
-            )
-        } else {
-            setTemperatureInputsEnabled(
-                false
-            )
-        }
+        setTemperatureInputsEnabled(false)
 
         if (
             selectedTab ==
@@ -3892,48 +4032,52 @@ class MainActivity : ComponentActivity() {
         connectionUiState =
             ConnectionUiState.CONNECTING
 
-        printerConnected =
-            false
+        printerConnected = false
 
-        lastStatus =
-            null
+        lastStatus = null
+        hotendLimits = null
+        bedLimits = null
+        limitsPrinterId = null
+        lastHotendTarget = null
+        lastBedTarget = null
+        lastSubmittedHotendTarget = null
+        lastSubmittedBedTarget = null
 
-        hotendLimits =
-            null
+        /*
+         * Если пользователь начал ввод,
+         * старые отложенные отправки нужно отменить
+         * при переключении на другой принтер.
+         */
+        hotendTargetEditing = false
+        bedTargetEditing = false
 
-        bedLimits =
-            null
+        hotendSubmitRunnable?.let {
+            keyboardHandler.removeCallbacks(it)
+        }
 
-        limitsPrinterId =
-            null
+        bedSubmitRunnable?.let {
+            keyboardHandler.removeCallbacks(it)
+        }
 
-        lastHotendTarget =
-            null
-
-        lastBedTarget =
-            null
-
-        lastSubmittedHotendTarget =
-            null
-
-        lastSubmittedBedTarget =
-            null
+        hotendSubmitRunnable = null
+        bedSubmitRunnable = null
 
         hotendTargetInput.text.clear()
         bedTargetInput.text.clear()
 
-        hotendCurrentTemperature.text =
-            "--.-°"
+        /*
+         * Поля снова становятся read-only.
+         * Пользователь сможет активировать их только
+         * собственным нажатием.
+         */
+        setTemperatureInputsEnabled(
+            false
+        )
 
-        bedCurrentTemperature.text =
-            "--.-°"
-
-        progressValue.text =
-            "0%"
-
-        progressBar.progress =
-            0
-
+        hotendCurrentTemperature.text = "--.-°"
+        bedCurrentTemperature.text = "--.-°"
+        progressValue.text = "0%"
+        progressBar.progress = 0
         temperatureChart.clearHistory()
 
         if (selectedTab == TAB_TASKS) {
@@ -4949,6 +5093,8 @@ class MainActivity : ComponentActivity() {
             hotendLimits != null &&
             bedLimits != null
         ) {
+            setTemperatureInputsEnabled(true)
+
             return
         }
 
@@ -4998,11 +5144,39 @@ class MainActivity : ComponentActivity() {
         enabled: Boolean
     ) {
 
+        temperatureInputsAvailable =
+            enabled
+
+        if (!enabled) {
+
+            hotendTargetEditing = false
+            bedTargetEditing = false
+
+            hotendSubmitRunnable?.let {
+                keyboardHandler.removeCallbacks(it)
+            }
+
+            bedSubmitRunnable?.let {
+                keyboardHandler.removeCallbacks(it)
+            }
+
+            hotendSubmitRunnable = null
+            bedSubmitRunnable = null
+        }
+
         hotendTargetInput.isEnabled =
             enabled
 
         bedTargetInput.isEnabled =
             enabled
+
+        makeTemperatureInputReadOnly(
+            hotendTargetInput
+        )
+
+        makeTemperatureInputReadOnly(
+            bedTargetInput
+        )
     }
 
     private fun loadPrintMetadata(
@@ -5814,7 +5988,6 @@ class MainActivity : ComponentActivity() {
     ) {
 
         status.hotendTemperature?.let {
-
             hotendCurrentTemperature.text =
                 String.format(
                     Locale.getDefault(),
@@ -5824,7 +5997,6 @@ class MainActivity : ComponentActivity() {
         }
 
         status.bedTemperature?.let {
-
             bedCurrentTemperature.text =
                 String.format(
                     Locale.getDefault(),
@@ -5834,36 +6006,40 @@ class MainActivity : ComponentActivity() {
         }
 
         status.hotendTarget?.let {
+            lastHotendTarget = it.toInt()
 
-            val target =
-                it.toInt()
+            if (!hotendTargetEditing) {
 
-            lastHotendTarget =
-                target
+                val target =
+                    it.toInt().toString()
 
-            if (
-                !hotendTargetInput.hasFocus()
-            ) {
-                hotendTargetInput.setText(
-                    target.toString()
-                )
+                if (
+                    hotendTargetInput.text
+                        .toString() != target
+                ) {
+                    hotendTargetInput.setText(
+                        target
+                    )
+                }
             }
         }
 
         status.bedTarget?.let {
+            lastBedTarget = it.toInt()
 
-            val target =
-                it.toInt()
+            if (!bedTargetEditing) {
 
-            lastBedTarget =
-                target
+                val target =
+                    it.toInt().toString()
 
-            if (
-                !bedTargetInput.hasFocus()
-            ) {
-                bedTargetInput.setText(
-                    target.toString()
-                )
+                if (
+                    bedTargetInput.text
+                        .toString() != target
+                ) {
+                    bedTargetInput.setText(
+                        target
+                    )
+                }
             }
         }
     }

@@ -9,9 +9,9 @@
 
     <!-- Основной экран -->
     <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/background">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/background">
 
         <!--
             Пролистываемое содержимое.
@@ -187,7 +187,7 @@
                                     android:textSize="16sp"
                                     android:hint="0"
                                     android:paddingLeft="4dp"
-                                    android:paddingRight="4dp" />
+                                    android:paddingRight="4dp"/>
 
                             </LinearLayout>
 
@@ -237,7 +237,7 @@
                                     android:textSize="16sp"
                                     android:hint="0"
                                     android:paddingLeft="4dp"
-                                    android:paddingRight="4dp" />
+                                    android:paddingRight="4dp"/>
 
                             </LinearLayout>
 
@@ -876,6 +876,7 @@
                 android:src="@drawable/ic_menu"
                 android:contentDescription="@string/menu"
                 android:background="@android:color/transparent"
+                android:tint="@color/primary"
                 android:padding="16dp" />
 
         </FrameLayout>
